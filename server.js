@@ -21,6 +21,14 @@ cxn.on("error", (err) => console.log(err));
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Schemas and Models
 ////////////////////////////////////////////////////////////////////////////////////////////
+//Schema the definition of our data type
+//Model, the object for working with our data type
+const todoSchema = new mongoose.Schema({
+    text: String,
+    completed: Boolean
+}, {timestamps: true});
+
+const Todo = mongoose.model("Todo", todoSchema);
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Create express Application
@@ -32,14 +40,29 @@ const app = express();
 app.use(methodOverride("_method"));//Allows to override request methods for form submissions
 app.use(morgan("dev")); //Log every request
 app.use(express.urlencoded({extended: true}));//Parses html form bodies into req.body
-app.use("/static", express.static("static"));//Serve files statically
+app.use("/public", express.static("public"));//Serve files statically
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Routes 
 ////////////////////////////////////////////////////////////////////////////////////////////
-app.get("/", (req, res) => {
-    res.send("<h1>Hello world</h1>");
-});
+app.get("/", async (req, res) => {
+    //go get todos
+    const todos = await Todo.find({}).catch((err) => res.send(err));
 
+    //render index.ejs
+    res.render("index.ejs", {todos});
+});
+app.get("/todos/seed", async (req, res) => {
+    // delete all existing todos
+    await Todo.remove({}).catch((err) => res.send(err))
+    // add your sample todos
+    const todos = await Todo.create([
+        {text: "eat breakfast", completed: false},
+        {text: "eat lunch", completed: false},
+        {text: "eat dinner", completed: false}
+    ]).catch((err) => res.send(err))
+    // send the todos as json
+    res.json(todos)
+})
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Listener
 ////////////////////////////////////////////////////////////////////////////////////////////
