@@ -59,9 +59,26 @@ app.get("/todos/seed", async (req, res) => {
         {text: "eat breakfast", completed: false},
         {text: "eat lunch", completed: false},
         {text: "eat dinner", completed: false}
-    ]).catch((err) => res.send(err))
+    ]).catch((err) => res.send(err));
     // send the todos as json
-    res.json(todos)
+    res.json(todos);
+});
+app.post("/todo", async (req, res) => {
+    // create the todo
+    await Todo.create(req.body).catch((err) => res.send(err));
+    // redirect back to main page
+    res.redirect("/");
+});
+
+app.put("/todo/:id", async (req, res) => {
+    // get the id from params
+    const id = req.params.id;
+    //get the todo to be updated
+    const todo = await Todo.findById(id);
+    //update the todo completed property
+    todo.completed = true;
+    await todo.save() //save changes
+    res.redirect("/"); 
 })
 ////////////////////////////////////////////////////////////////////////////////////////////
 //Listener
